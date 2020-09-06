@@ -4,7 +4,7 @@ const url = 'https://mainnet.infura.io/v3/fb45d7cd293f427082924647bd6fb1fa';
 
 const web3 = new Web3(url);
 
-//Api Of ChainLink Token
+//Abi Of ChainLink Token
 const abi = [
 	{
 		constant: true,

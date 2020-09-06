@@ -4,9 +4,12 @@
   We will also check transaction status in ropsten.etherscan.io
 */
 
-const tx = require('ethereumjs-tx');
+const Tx = require('ethereumjs-tx').Transaction;
 
 const Web3 = require('web3');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 // infura rapsten test network url
 const url = 'https://ropsten.infura.io/v3/fb45d7cd293f427082924647bd6fb1fa';
@@ -17,34 +20,38 @@ const web3 = new Web3(url);
 const account1 = '0xD00fa94f727e2B7F81ff918414722B40Ce9E9575';
 const account2 = '0xA8aB96567b1eD20953dD44762d892b21361fd012';
 
-const privateKey1 = '80ff3d778a25faa7c7ff01101c57f9acd6fec2a387bbc51e738a308622fb3c79';
-const privateKey2 = '1c91447906220b3a34af245f9370d31eaf69cc1d1448c96f7e4620338c7ecd86';
+const privateKey1 = process.env.PRIVATE_KEY_1;
+const privateKey2 = process.env.PRIVATE_KEY_2;
+
+// console.log(privateKey1);
 
 //We need to convert private key into bite code
 const pKey1 = Buffer.from(privateKey1, 'hex');
 const pKey2 = Buffer.from(privateKey2, 'hex');
 
 web3.eth.getTransactionCount(account1, (err, txCount) => {
-	let txCount = {
+	let txObject = {
 		nonce: web3.utils.toHex(txCount),
 		to: account2,
 		value: web3.utils.toHex(web3.utils.toWei('1', 'ether')),
 		gasLimit: web3.utils.toHex(21000),
-		gasPrice: web3.utils.toHex(web3.utils.toWei('10', 'gwei')),
+		gasPrice: web3.utils.toHex(web3.utils.toWei('10', 'gwei')), //we provide gwei value in gasPrice
 	};
 
 	//creating transaction object
-	const tx = new tx(txObject);
+	//need to specify network to make work the transaction broadcast
+	const tx = new Tx(txObject, { chain: 'ropsten' });
 	//Sign the transaction
 	tx.sign(pKey1);
 
 	// serialize transaction
 	const serializedTransaction = tx.serialize();
-	const raw = '0x' + serializedTransaction.toString();
+	const raw = '0x' + serializedTransaction.toString('hex');
 
-	//Broadcast the transaction
-
-	web3.eth.sendSignedTransaction(raw, (err, txHash) => {
-		console.log(`Transaction Hash : ${txHash}`);
+	//Broadcast the transaction from one account to another account
+	web3.eth.sendSignedTransaction(raw, (err, result) => {
+		console.log(`Transaction Hash : ${result}`);
 	});
+
+	// web3.eth.sendSignedTransaction(raw).on('receipt', console.log);
 });
